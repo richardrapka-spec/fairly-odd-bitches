@@ -28,9 +28,10 @@ The `docs/` folder is static: any https host serves it (GitHub Pages, Netlify,
 Cloudflare Pages). Open the address in Safari, Share → Add to Home Screen.
 From then on it opens full screen, offline, from the icon.
 
-On each page, tap ✎ and paste the conversation's link from ChatGPT (open the
-conversation, tap its name, Share, Copy link). Tapping the page after that
-opens the thread in the ChatGPT app.
+On each page, tap ✎ and paste the conversation's address: open chatgpt.com in
+Safari, open the conversation, copy the address bar (it has `/c/` in it).
+Not the Share link, which is a public read-only snapshot. Tapping the page
+after that opens the thread in the ChatGPT app.
 
 ## What it cannot do
 

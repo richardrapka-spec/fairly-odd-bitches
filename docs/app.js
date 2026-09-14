@@ -37,8 +37,12 @@ function savePages() { try { localStorage.setItem(KEY, JSON.stringify(state.page
 // ---- layout: the words sit on the page wherever the frame lands ----------
 function layout() {
   const W = innerWidth, H = innerHeight;
-  const s = Math.max(W / FRAME.w, H / FRAME.h);
+  // a phone fills the screen with the frame; a wide window (the PC) shows the
+  // whole book letterboxed instead of a crop of its middle
+  const wide = W / H > FRAME.w / FRAME.h;
+  const s = wide ? H / FRAME.h : Math.max(W / FRAME.w, H / FRAME.h);
   const fw = FRAME.w * s, fh = FRAME.h * s;
+  for (const layer of document.querySelectorAll(".layer")) layer.style.objectFit = wide ? "contain" : "cover";
   // a phone is narrower than the frame: slide the frame so the right-hand
   // page, not the spine, sits in the middle of the screen
   const cx = (PAGE.x + PAGE.w / 2) * fw;
@@ -190,7 +194,7 @@ $("#open").addEventListener("click", () => {
 const editor = $("#editor");
 function openEditor() {
   const page = state.pages[state.at - 1]; if (!page) return;
-  $("#fName").value = page.name; $("#fAbout").value = page.about; $("#fNote").value = page.note || ""; $("#fLink").value = page.link || "";
+  $("#fName").value = page.name; $("#fAbout").value = page.about; $("#fNote").value = page.note || ""; $("#fLink").value = page.link || ""; $("#fLink").setCustomValidity("");
   editor.showModal();
 }
 $("#edit").addEventListener("click", openEditor);
@@ -203,6 +207,9 @@ $("#editForm").addEventListener("submit", (event) => {
   page.note = $("#fNote").value.trim();
   let link = $("#fLink").value.trim();
   if (link && !/^https?:\/\//i.test(link)) link = `https://${link}`;
+  // a Share link is a public snapshot, not the living thread
+  if (/chatgpt\.com\/share\//i.test(link)) { $("#fLink").setCustomValidity("That is a Share snapshot. Open the conversation at chatgpt.com and copy its address, the one with /c/ in it."); $("#fLink").reportValidity(); return; }
+  $("#fLink").setCustomValidity("");
   page.link = link;
   savePages();
   editor.close();

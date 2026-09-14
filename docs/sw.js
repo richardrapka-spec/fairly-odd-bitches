@@ -1,6 +1,6 @@
 // Everything the book needs, kept on the phone: after the first visit it
 // opens with no network at all. Bump VERSION when a file changes.
-const VERSION = "fob-v1";
+const VERSION = "fob-v2";
 const FILES = [
   "./", "index.html", "style.css", "app.js", "manifest.webmanifest",
   "assets/cover.jpg", "assets/page.jpg", "assets/icon-180.png", "assets/icon-512.png",
