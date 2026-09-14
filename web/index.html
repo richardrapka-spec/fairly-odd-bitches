@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Fairly Odd Bitches</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fairly Odd">
+<meta name="theme-color" content="#1a1410">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="book" aria-label="Fairly Odd Bitches">
+    <!-- the scene: one poster and four clips, stacked; only one is visible -->
+    <img id="poster" class="layer" src="assets/cover.jpg" alt="">
+    <video id="vOpen" class="layer clip" src="assets/open.mp4" playsinline muted preload="auto"></video>
+    <video id="vClose" class="layer clip" src="assets/close.mp4" playsinline muted preload="auto"></video>
+    <video id="vTurn" class="layer clip" src="assets/turn.mp4" playsinline muted preload="auto"></video>
+    <video id="vTurnRev" class="layer clip" src="assets/turn-rev.mp4" playsinline muted preload="auto"></video>
+
+    <!-- the words on the right-hand page, written in as the page settles -->
+    <section id="page" class="page" hidden>
+      <p class="folio"><span id="folio"></span></p>
+      <h1 id="name"></h1>
+      <p id="about" class="about"></p>
+      <p id="note" class="note"></p>
+      <button id="open" class="open" type="button"><span id="openLabel">Open the thread</span></button>
+      <p class="hint" id="hint"></p>
+    </section>
+
+    <!-- the cover's one invitation -->
+    <button id="lift" class="lift" type="button" aria-label="Open the book"><span>tap to open</span></button>
+
+    <!-- corners: back and forward, always there when the book is open -->
+    <button id="back" class="corner back" type="button" aria-label="Previous page" hidden>‹</button>
+    <button id="next" class="corner next" type="button" aria-label="Next page" hidden>›</button>
+    <button id="edit" class="pen" type="button" aria-label="Edit this page" hidden>✎</button>
+  </main>
+
+  <!-- editing a page: her words, and the thread it opens -->
+  <dialog id="editor">
+    <form method="dialog" id="editForm">
+      <h2>This page</h2>
+      <label>Name <input id="fName" maxlength="24" autocomplete="off"></label>
+      <label>For <input id="fAbout" maxlength="40" autocomplete="off" placeholder="baking, homeschool…"></label>
+      <label>A line of yours <textarea id="fNote" rows="2" maxlength="160" placeholder="anything you want written here"></textarea></label>
+      <label>The ChatGPT thread <input id="fLink" inputmode="url" autocomplete="off" placeholder="paste the conversation link"></label>
+      <p class="how">In ChatGPT: open the conversation, tap its name at the top, Share, then Copy link. Paste it here. Tapping this page opens it in the app.</p>
+      <div class="row"><button type="button" id="editCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

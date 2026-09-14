@@ -1,0 +1,79 @@
+/* Fairly Odd Bitches — a book, on a phone. The video frame is 800×1136 and
+   fills the screen (cover-fit); the words sit on the right-hand page at
+   fractions of that frame, which app.js turns into pixels. */
+:root {
+  --ink: #3a2a1a;
+  --ink-soft: #6b5238;
+  --gold: #b8923f;
+  --paper: #efe4cd;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #1a1410; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body { font-family: "Snell Roundhand", "Savoye LET", "Bradley Hand", "Segoe Script", cursive; color: var(--ink); }
+
+#book { position: fixed; inset: 0; overflow: hidden; background: #1a1410; }
+.layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.clip { opacity: 0; pointer-events: none; }
+.clip.playing { opacity: 1; }
+#poster { transition: opacity 120ms linear; }
+#poster.under { opacity: 0; }
+
+/* the words on the page — placed by app.js in px */
+.page { position: absolute; pointer-events: none; padding: 0; display: flex; flex-direction: column; gap: 0.35em; }
+.page[hidden] { display: none; }
+.page .folio { font-family: Georgia, "Times New Roman", serif; font-size: 0.72em; letter-spacing: 0.3em; color: var(--ink-soft); margin: 0 0 0.6em; opacity: 0.8; }
+.page h1 { font-size: 2.9em; line-height: 1; margin: 0; font-weight: 400; color: var(--ink); text-shadow: 0 0 1px rgba(58, 42, 26, 0.25); }
+.page .about { font-size: 1.6em; margin: 0; color: var(--ink-soft); }
+.page .note { font-size: 1.25em; margin: 0.8em 0 0; color: var(--ink); line-height: 1.35; min-height: 1.35em; }
+.page .open {
+  pointer-events: auto; align-self: flex-start; margin-top: 1.2em;
+  font: 400 1.4em "Snell Roundhand", "Bradley Hand", cursive; color: var(--ink);
+  background: transparent; border: 0; border-bottom: 1.5px solid var(--gold); padding: 0 0.1em 0.15em;
+  opacity: 0; transition: opacity 400ms ease;
+}
+.page .open.ready { opacity: 1; }
+.page .open:active { color: var(--gold); }
+.page .hint { font-family: Georgia, serif; font-size: 0.72em; color: var(--ink-soft); margin: 0.4em 0 0; opacity: 0; transition: opacity 400ms ease 200ms; }
+.page .hint.ready { opacity: 0.75; }
+/* the pen: letters arrive one at a time; the last one carries the nib */
+.w { opacity: 0; }
+.w.on { opacity: 1; }
+
+.lift {
+  position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 28px));
+  transform: translateX(-50%);
+  font: 400 22px "Snell Roundhand", "Bradley Hand", cursive; color: #e9d7a8;
+  background: rgba(20, 14, 8, 0.55); border: 1px solid rgba(184, 146, 63, 0.7); border-radius: 999px;
+  padding: 10px 26px; letter-spacing: 0.04em;
+  animation: breathe 2.6s ease-in-out infinite;
+}
+.lift[hidden] { display: none; }
+@keyframes breathe { 0%, 100% { box-shadow: 0 0 0 rgba(184, 146, 63, 0); } 50% { box-shadow: 0 0 22px rgba(184, 146, 63, 0.45); } }
+
+.corner {
+  position: absolute; bottom: max(14px, env(safe-area-inset-bottom, 14px)); width: 56px; height: 56px;
+  font: 400 40px Georgia, serif; line-height: 1; color: rgba(233, 215, 168, 0.85);
+  background: rgba(20, 14, 8, 0.35); border: 1px solid rgba(184, 146, 63, 0.4); border-radius: 50%;
+}
+.corner[hidden] { display: none; }
+.corner.back { left: 14px; }
+.corner.next { right: 14px; }
+.corner:active { background: rgba(184, 146, 63, 0.4); }
+.pen {
+  position: absolute; top: max(14px, env(safe-area-inset-top, 14px)); right: 14px; width: 44px; height: 44px;
+  font-size: 20px; color: rgba(233, 215, 168, 0.85);
+  background: rgba(20, 14, 8, 0.35); border: 1px solid rgba(184, 146, 63, 0.4); border-radius: 50%;
+}
+.pen[hidden] { display: none; }
+
+/* the editor */
+dialog#editor { border: 0; border-radius: 14px; padding: 0; width: min(92vw, 420px); background: var(--paper); color: var(--ink); font-family: Georgia, serif; }
+dialog#editor::backdrop { background: rgba(0, 0, 0, 0.55); }
+#editForm { padding: 18px 18px 14px; display: flex; flex-direction: column; gap: 12px; }
+#editForm h2 { margin: 0 0 2px; font: 400 26px "Snell Roundhand", "Bradley Hand", cursive; }
+#editForm label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--ink-soft); }
+#editForm input, #editForm textarea { font: 16px Georgia, serif; padding: 9px 10px; border: 1px solid #c9b58f; border-radius: 8px; background: #fbf6ea; color: var(--ink); }
+#editForm .how { font-size: 12px; color: var(--ink-soft); margin: 0; line-height: 1.4; }
+#editForm .row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+#editForm button { font: 15px Georgia, serif; padding: 9px 16px; border-radius: 999px; border: 1px solid #c9b58f; background: transparent; color: var(--ink); }
+#editForm button.primary { background: var(--gold); border-color: var(--gold); color: #fff; }
