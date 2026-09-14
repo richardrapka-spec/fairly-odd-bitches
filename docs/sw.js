@@ -1,6 +1,6 @@
 // Everything the book needs, kept on the phone: after the first visit it
 // opens with no network at all. Bump VERSION when a file changes.
-const VERSION = "fob-v7";
+const VERSION = "fob-v8";
 const FILES = [
   "./", "index.html", "style.css", "app.js", "manifest.webmanifest",
   "assets/cover.jpg", "assets/icon-180.png", "assets/icon-512.png",
@@ -10,14 +10,17 @@ self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(VERSION).then((cache) => cache.addAll(FILES)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== VERSION).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
-      // a window still showing the old version reloads itself into this one
-      .then(() => self.clients.matchAll({ type: "window" }))
-      .then((windows) => Promise.all(windows.map((w) => w.navigate(w.url).catch(() => {}))))
-  );
+  event.waitUntil((async () => {
+    const stale = (await caches.keys()).filter((key) => key !== VERSION);
+    await Promise.all(stale.map((key) => caches.delete(key)));
+    await self.clients.claim();
+    // only when an older version was replaced: a window still showing it
+    // reloads itself into this one. A first install reloads nothing.
+    if (stale.length) {
+      const windows = await self.clients.matchAll({ type: "window" });
+      await Promise.all(windows.map((w) => w.navigate(w.url).catch(() => {})));
+    }
+  })());
 });
 // the page fetches each film whole and plays it from a blob, so video is
 // served from the cache as a whole file; ranges are sliced only as a courtesy
