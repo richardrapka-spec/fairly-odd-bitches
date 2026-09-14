@@ -52,6 +52,51 @@ function loadHolds() {
 function saveHolds() { try { localStorage.setItem(HOLDS_KEY, JSON.stringify(state.holds)); } catch {} }
 
 // ---- layout: the words sit on the page wherever the frame lands ----------
+// where the open page is in the film around each rest (measure.py):
+// { "<rest>": { "<time>": [x, y, w, h] } } as fractions of the frame, the
+// spread's cream from its left edge to its right edge
+let glide = {};
+fetch("glide.json").then((r) => r.json()).then((g) => { glide = g || {}; placeCurrent(); }).catch(() => {});
+const geom = { s: 1, fw: FRAME.w, fh: FRAME.h, ox: 0, oy: 0 };
+const PAGE_W = 0.6; // the right-hand page's width as a fraction of the frame
+function pageBox(b) {
+  // the right page: from the spread's right edge back one page width,
+  // with a margin inside the paper
+  if (!b) return { x: PAGE.x, y: PAGE.y, w: PAGE.w, h: PAGE.h };
+  const right = b[0] + b[2];
+  return { x: right - PAGE_W + 0.03, y: b[1] + 0.05, w: PAGE_W - 0.06, h: b[3] - 0.1 };
+}
+function samplesFor(rest) {
+  const key = Object.keys(glide).find((k) => Math.abs(Number(k) - rest) < 0.06);
+  if (!key) return null;
+  return Object.entries(glide[key]).filter(([, box]) => box).map(([t, box]) => [Number(t), box]).sort((a, b) => a[0] - b[0]);
+}
+// the page's box at film time t, gliding between the samples around `rest`
+function boxAt(rest, t) {
+  const samples = samplesFor(rest);
+  if (!samples || !samples.length) return pageBox(null);
+  if (t <= samples[0][0]) return pageBox(samples[0][1]);
+  if (t >= samples[samples.length - 1][0]) return pageBox(samples[samples.length - 1][1]);
+  for (let i = 0; i < samples.length - 1; i++) {
+    const [t0, a] = samples[i], [t1, b] = samples[i + 1];
+    if (t >= t0 && t <= t1) {
+      const k = (t - t0) / Math.max(1e-6, t1 - t0);
+      return pageBox(a.map((v, j) => v + (b[j] - v) * k));
+    }
+  }
+  return pageBox(samples[samples.length - 1][1]);
+}
+function placePage(box) {
+  const { s, fw, fh, ox, oy } = geom;
+  pageEl.style.left = `${ox + box.x * fw}px`;
+  pageEl.style.top = `${oy + box.y * fh}px`;
+  pageEl.style.width = `${box.w * fw}px`;
+  pageEl.style.height = `${box.h * fh}px`;
+  pageEl.style.fontSize = `${16 * (fw / FRAME.w)}px`;
+}
+function placeCurrent() {
+  if (state.at > 0) { const rest = restOf(state.at); placePage(boxAt(rest, rest)); }
+}
 function layout() {
   const W = innerWidth, H = innerHeight;
   // a phone fills the screen with the frame; a wide window (the PC) shows the
@@ -68,14 +113,39 @@ function layout() {
     layer.style.objectFit = wide ? "contain" : "cover";
     layer.style.objectPosition = `${(px * 100).toFixed(2)}% 50%`;
   }
-  pageEl.style.left = `${ox + PAGE.x * fw}px`;
-  pageEl.style.top = `${oy + PAGE.y * fh}px`;
-  pageEl.style.width = `${PAGE.w * fw}px`;
-  pageEl.style.height = `${PAGE.h * fh}px`;
-  pageEl.style.fontSize = `${16 * (fw / FRAME.w)}px`;
+  Object.assign(geom, { s, fw, fh, ox, oy });
+  placePage(pageBox(null));
+  placeCurrent();
 }
 addEventListener("resize", layout);
 layout();
+
+// ---- parallax: the words sit a hair above the paper ------------------------
+// A tilt of the phone (or the mouse on a computer) shifts the words a few
+// pixels against the page, and the page is the film, so the two separate.
+const tilt = { x: 0, y: 0, tx: 0, ty: 0, on: false };
+function parallaxLoop() {
+  tilt.x += (tilt.tx - tilt.x) * 0.12;
+  tilt.y += (tilt.ty - tilt.y) * 0.12;
+  const k = 7 * (geom.fw / FRAME.w);
+  pageEl.style.transform = `translate(${(tilt.x * k).toFixed(2)}px, ${(tilt.y * k).toFixed(2)}px)`;
+  requestAnimationFrame(parallaxLoop);
+}
+requestAnimationFrame(parallaxLoop);
+addEventListener("deviceorientation", (event) => {
+  if (event.gamma === null || event.beta === null) return;
+  tilt.tx = Math.max(-1, Math.min(1, event.gamma / 25));
+  tilt.ty = Math.max(-1, Math.min(1, (event.beta - 45) / 25));
+});
+addEventListener("pointermove", (event) => {
+  if (event.pointerType === "touch") return;
+  tilt.tx = (event.clientX / innerWidth - 0.5) * 2;
+  tilt.ty = (event.clientY / innerHeight - 0.5) * 2;
+});
+function askTilt() {
+  // iPhone gives tilt only when asked during a tap
+  try { if (typeof DeviceOrientationEvent !== "undefined" && DeviceOrientationEvent.requestPermission) DeviceOrientationEvent.requestPermission().catch(() => {}); } catch {}
+}
 
 // ---- the film ---------------------------------------------------------------
 const duration = () => state.duration || film.fwd.duration || 15.04;
@@ -115,8 +185,9 @@ function show(v) {
   poster.classList.add("under");
   state.showing = v;
 }
-// play v from `from` and stop on the frame at `to`
-function run(v, from, to) {
+// play v from `from` and stop on the frame at `to`. `ride` is told the film
+// time on every frame so the words can ride the page.
+function run(v, from, to, ride) {
   return new Promise(async (resolve) => {
     await seek(v, from);
     show(v);
@@ -129,6 +200,7 @@ function run(v, from, to) {
     };
     const watch = () => {
       if (done) return;
+      if (ride) ride(v.currentTime);
       if (v.currentTime >= to - 0.03 || v.ended) return stop();
       requestAnimationFrame(watch);
     };
@@ -140,29 +212,23 @@ function run(v, from, to) {
 }
 
 // ---- the pen --------------------------------------------------------------
-function clearWriting() { state.writing += 1; }
+function clearWriting() { state.writing += 1; for (const el of pageEl.querySelectorAll("[data-ink]")) { el.getAnimations().forEach((a) => a.cancel()); el.style.setProperty("--p", "0%"); } }
+const canInk = typeof CSS !== "undefined" && CSS.registerProperty !== undefined;
+// the ink sweeps across the words at a steady pace with a soft edge: a pen,
+// not letters popping in. Where the browser cannot animate the sweep the
+// words simply appear.
 function write(el, text, msPerChar) {
   const token = ++state.writing;
-  el.replaceChildren();
-  const spans = [];
-  for (const ch of String(text || "")) {
-    const span = document.createElement("span");
-    span.className = "w";
-    span.textContent = ch;
-    el.appendChild(span);
-    spans.push(span);
-  }
+  el.textContent = String(text || "");
+  el.dataset.ink = "1";
+  if (!text) { el.style.setProperty("--p", "110%"); return Promise.resolve(true); }
+  if (!canInk) { el.style.setProperty("--p", "110%"); return Promise.resolve(true); }
+  el.style.setProperty("--p", "0%");
+  const duration = Math.max(420, String(text).length * msPerChar);
+  const anim = el.animate([{ "--p": "0%" }, { "--p": "110%" }], { duration, easing: "linear", fill: "forwards" });
   return new Promise((resolve) => {
-    let i = 0;
-    const tick = () => {
-      if (token !== state.writing) return resolve(false);
-      if (i >= spans.length) return resolve(true);
-      spans[i].classList.add("on");
-      i += 1;
-      const ch = spans[i - 1].textContent;
-      setTimeout(tick, /[.,!?]/.test(ch) ? msPerChar * 4 : ch === " " ? msPerChar * 1.6 : msPerChar);
-    };
-    tick();
+    anim.onfinish = () => { el.style.setProperty("--p", "110%"); resolve(token === state.writing); };
+    anim.oncancel = () => resolve(false);
   });
 }
 
@@ -175,9 +241,11 @@ async function showPage(n) {
   openBtn.classList.remove("ready"); hint.classList.remove("ready");
   $("#openLabel").textContent = page.link ? `Open ${n === state.pages.length ? "their" : page.name.split(" ")[0] + "'s"} thread` : "Choose the thread";
   hint.textContent = page.link ? "" : "Tap ✎ or here to paste her ChatGPT link";
-  await write($("#name"), page.name, 55);
-  await write($("#about"), page.about, 40);
-  if (page.note) await write($("#note"), page.note, 28); else $("#note").replaceChildren();
+  placeCurrent();
+  pageEl.classList.remove("ghost");
+  await write($("#name"), page.name, 70);
+  await write($("#about"), page.about, 55);
+  if (page.note) await write($("#note"), page.note, 40); else await write($("#note"), "", 0);
   openBtn.classList.add("ready"); hint.classList.add("ready");
 }
 function hidePage() { clearWriting(); pageEl.hidden = true; }
@@ -196,8 +264,17 @@ async function go(direction) {
   if (to < 0 || to > state.pages.length) return;
   state.busy = true;
   await warm();
-  hidePage();
+  clearWriting();
   const D = duration();
+  // the words ride the page as it lifts away (for half a second), then the
+  // empty page glides in and lands; only then does the pen start
+  const leaving = state.at > 0 ? restOf(state.at) : null;
+  const landing = to > 0 ? restOf(to) : null;
+  const ride = (filmTime) => {
+    if (leaving !== null && Math.abs(filmTime - leaving) < 0.5) { placePage(boxAt(leaving, filmTime)); pageEl.hidden = false; pageEl.classList.remove("ghost"); return; }
+    if (landing !== null && Math.abs(filmTime - landing) < 0.7) { if (!pageEl.classList.contains("ghost")) { clearWriting(); pageEl.classList.add("ghost"); } placePage(boxAt(landing, filmTime)); pageEl.hidden = false; return; }
+    pageEl.hidden = true;
+  };
   try {
     if (direction > 0) {
       // forward: from where the film rests now to where it rests next. Past
@@ -207,7 +284,7 @@ async function go(direction) {
       let from = state.at === 0 ? 0 : restOf(state.at);
       let until = restOf(to);
       if (to > last) { from = restOf(last - 1); until = restOf(last); }
-      await run(film.fwd, from, until);
+      await run(film.fwd, from, until, (t) => ride(t));
       // the reverse film stands ready on this same frame for a backward turn
       seek(film.rev, D - until);
     } else {
@@ -215,14 +292,14 @@ async function go(direction) {
       let from = restOf(state.at);
       let until = to === 0 ? 0 : restOf(to);
       if (state.at > last) { from = restOf(last); until = restOf(last - 1); }
-      await run(film.rev, D - from, D - until);
+      await run(film.rev, D - from, D - until, (t) => ride(D - t));
       seek(film.fwd, until);
     }
   } finally {
     state.at = to;
     state.busy = false;
     chrome();
-    if (to > 0) showPage(to);
+    if (to > 0) showPage(to); else { pageEl.hidden = true; pageEl.classList.remove("ghost"); }
   }
 }
 
@@ -240,7 +317,7 @@ book.addEventListener("pointerup", (event) => {
   const x = event.clientX / innerWidth;
   if (x > 0.6) go(1); else if (x < 0.4) go(-1);
 });
-$("#lift").addEventListener("click", () => go(1));
+$("#lift").addEventListener("click", () => { askTilt(); go(1); });
 $("#next").addEventListener("click", () => go(1));
 $("#back").addEventListener("click", () => go(-1));
 addEventListener("keydown", (event) => {

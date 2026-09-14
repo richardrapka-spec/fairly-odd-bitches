@@ -1,8 +1,8 @@
 // Everything the book needs, kept on the phone: after the first visit it
 // opens with no network at all. Bump VERSION when a file changes.
-const VERSION = "fob-v8";
+const VERSION = "fob-v9";
 const FILES = [
-  "./", "index.html", "style.css", "app.js", "manifest.webmanifest",
+  "./", "index.html", "style.css", "app.js", "manifest.webmanifest", "glide.json",
   "assets/cover.jpg", "assets/icon-180.png", "assets/icon-512.png",
   "assets/full.mp4", "assets/full-rev.mp4",
 ];

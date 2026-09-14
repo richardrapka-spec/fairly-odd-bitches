@@ -35,9 +35,16 @@ body { font-family: "Snell Roundhand", "Savoye LET", "Bradley Hand", "Segoe Scri
 .page .open:active { color: var(--gold); }
 .page .hint { font-family: Georgia, serif; font-size: 0.72em; color: var(--ink-soft); margin: 0.4em 0 0; opacity: 0; transition: opacity 400ms ease 200ms; }
 .page .hint.ready { opacity: 0.75; }
-/* the pen: letters arrive one at a time; the last one carries the nib */
-.w { opacity: 0; }
-.w.on { opacity: 1; }
+/* the pen: an ink sweep with a soft edge, driven by --p from 0% to 110% */
+@property --p { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+.page [data-ink], .page h1, .page .about, .page .note {
+  --p: 0%;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--p) - 9%), rgba(0, 0, 0, 0) var(--p));
+  mask-image: linear-gradient(90deg, #000 calc(var(--p) - 9%), rgba(0, 0, 0, 0) var(--p));
+}
+/* while the empty page glides in, the box is placed but nothing shows */
+.page.ghost > * { opacity: 0 !important; }
+.page { will-change: transform, left, top; }
 
 .lift {
   position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 28px));
