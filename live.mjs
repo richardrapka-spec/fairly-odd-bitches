@@ -16,7 +16,7 @@ await page.waitForTimeout(1500);
 await page.click("#lift");
 await page.waitForTimeout(9500);
 const out = await page.evaluate(() => {
-  const v = document.querySelector("#vOpen");
+  const v = document.querySelector("#vFwd");
   return { name: document.querySelector("#name").textContent, folio: document.querySelector("#folio").textContent, sw: !!navigator.serviceWorker?.controller, open: { duration: v.duration, currentTime: v.currentTime, readyState: v.readyState, ended: v.ended, error: v.error ? v.error.code : null } };
 });
 await page.screenshot({ path: "C:/Users/richa/AppData/Local/Temp/claude/C--Users-richa/8a6994a7-2d5f-4578-be99-ece8cd7b8419/scratchpad/live-page1.png" });
