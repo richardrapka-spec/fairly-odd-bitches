@@ -25,7 +25,8 @@ const DEFAULT_PAGES = [
   { name: "All the bitches", about: "everyone at once", note: "", link: "" },
 ];
 // where the film rests, in seconds: the open spread, then each turned spread
-const DEFAULT_HOLDS = [7.8, 10.69, 12.2, 14.3];
+// Rich's rests, set with the slider on 2026-09-14: one per page
+const DEFAULT_HOLDS = [5.12, 5.96, 8.06, 10.6, 12.08, 14.36];
 
 const $ = (s) => document.querySelector(s);
 const book = $("#book"), poster = $("#poster"), pageEl = $("#page");
