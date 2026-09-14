@@ -16,10 +16,8 @@
   <main id="book" aria-label="Fairly Odd Bitches">
     <!-- the scene: one poster and four clips, stacked; only one is visible -->
     <img id="poster" class="layer" src="assets/cover.jpg" alt="">
-    <video id="vOpen" class="layer clip" src="assets/open.mp4" playsinline muted preload="auto"></video>
-    <video id="vClose" class="layer clip" src="assets/close.mp4" playsinline muted preload="auto"></video>
-    <video id="vTurn" class="layer clip" src="assets/turn.mp4" playsinline muted preload="auto"></video>
-    <video id="vTurnRev" class="layer clip" src="assets/turn-rev.mp4" playsinline muted preload="auto"></video>
+    <video id="vFwd" class="layer clip" data-src="assets/full.mp4" playsinline muted preload="auto"></video>
+    <video id="vRev" class="layer clip" data-src="assets/full-rev.mp4" playsinline muted preload="auto"></video>
 
     <!-- the words on the right-hand page, written in as the page settles -->
     <section id="page" class="page" hidden>
@@ -32,7 +30,7 @@
     </section>
 
     <!-- the cover's one invitation -->
-    <button id="lift" class="lift" type="button" aria-label="Open the book"><span>tap to open</span></button>
+    <button id="lift" class="lift" type="button" aria-label="Open the book" disabled><span>the book is coming…</span></button>
 
     <!-- corners: back and forward, always there when the book is open -->
     <button id="back" class="corner back" type="button" aria-label="Previous page" hidden>‹</button>
@@ -48,7 +46,7 @@
       <label>For <input id="fAbout" maxlength="40" autocomplete="off" placeholder="baking, homeschool…"></label>
       <label>A line of yours <textarea id="fNote" rows="2" maxlength="160" placeholder="anything you want written here"></textarea></label>
       <label>The ChatGPT thread <input id="fLink" inputmode="url" autocomplete="off" placeholder="paste the conversation link"></label>
-      <p class="how">The live thread, not a Share snapshot: open chatgpt.com in Safari, open the conversation, and copy the address bar (it has /c/ in it). Paste it here. Tapping this page then opens that thread in the ChatGPT app.</p>
+      <p class="how">Not the Share button: that makes a public read-only copy. The living thread's address only shows in a browser: open chatgpt.com in Safari, open the conversation, copy the address bar (it has /c/ in it), paste it here. Tapping this page then opens that thread in the ChatGPT app.</p>
       <div class="row"><button type="button" id="editCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
     </form>
   </dialog>

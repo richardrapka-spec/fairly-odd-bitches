@@ -14,11 +14,13 @@ worker, so the book opens with no network.
 
 - `docs/` — the app. `index.html`, `app.js`, `style.css`, `sw.js`,
   `manifest.webmanifest`, and `assets/` (the four clips, two posters, icons).
-- `bake.py` — bakes `docs/assets` from the Grok page-turn video:
-  `open.mp4` (cover → open), `close.mp4` (its reverse), `turn.mp4` (one page
-  turn), `turn-rev.mp4` (its reverse). iPhone Safari cannot play video
-  backwards, hence the reversed bakes. Every held spread in the clip is the
-  same blank page, so one turn serves every page.
+- `bake.py` — bakes `docs/assets/full.mp4` (the whole clip, one continuous
+  film) and `full-rev.mp4` (its reverse; iPhone Safari cannot play video
+  backwards). The book plays the film from one rest to the next and stops.
+  Rest times are set in `?tune` (a slider; press a rest button to save the
+  slider's time) and kept on the phone; the defaults are in `app.js`. Every
+  rest in the clip is the same blank spread, so pages past the last rest
+  replay the last turn.
 - `preview.mjs` — the book at iPhone size in a headless browser, screenshots
   of cover, page one written, page two, and the editor.
 
