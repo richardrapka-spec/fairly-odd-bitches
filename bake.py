@@ -17,7 +17,7 @@ import av
 import cv2
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else r"C:\Users\richa\Downloads\grok-video-0dc4fea5-221c-4e53-9771-bb7daf5d81c0.mp4"
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web", "assets")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "assets")
 os.makedirs(OUT, exist_ok=True)
 
 OPEN_END = 7.8   # cover -> held open spread

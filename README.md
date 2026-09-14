@@ -12,9 +12,9 @@ worker, so the book opens with no network.
 
 ## Files
 
-- `web/` — the app. `index.html`, `app.js`, `style.css`, `sw.js`,
+- `docs/` — the app. `index.html`, `app.js`, `style.css`, `sw.js`,
   `manifest.webmanifest`, and `assets/` (the four clips, two posters, icons).
-- `bake.py` — bakes `web/assets` from the Grok page-turn video:
+- `bake.py` — bakes `docs/assets` from the Grok page-turn video:
   `open.mp4` (cover → open), `close.mp4` (its reverse), `turn.mp4` (one page
   turn), `turn-rev.mp4` (its reverse). iPhone Safari cannot play video
   backwards, hence the reversed bakes. Every held spread in the clip is the
@@ -24,7 +24,7 @@ worker, so the book opens with no network.
 
 ## Putting it on her phone
 
-The `web/` folder is static: any https host serves it (GitHub Pages, Netlify,
+The `docs/` folder is static: any https host serves it (GitHub Pages, Netlify,
 Cloudflare Pages). Open the address in Safari, Share → Add to Home Screen.
 From then on it opens full screen, offline, from the icon.
 
